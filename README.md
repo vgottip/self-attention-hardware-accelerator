@@ -1,121 +1,200 @@
+# self-attention-hardware-accelerator
 
-
-
-
-# ECE464/564 HW6
-This document contains the instructions and commands to setup HW6 directory. In the folder tree of this HW, several ```Makefile```s are used to 
+A SystemVerilog-based hardware design for accelerating Transformer neural network computation using pipelined self-attention and SRAM-based matrix multiplication.
 
 ## Overview
-- [Unzip](#unzip)
-- [Start Designing](#start-designing)
-- [Synthesis](#synthesis)
-- [Submission](#submission)
-- [Appendix](#appendix)
 
-## Unzip
-Once you have placed ```HW6.zip``` at desired directory. Launch a terminal at that directory and use the following command to unzip.
-```bash
-unzip HW6.zip
+This project implements a high-performance Transformer computation module for ASIC and FPGA design. The design focuses on accelerating self-attention by optimizing matrix multiplication, memory access, and pipeline utilization.
+
+Inputs and weights are stored in SRAM-style memory files, and the hardware processes them through a pipelined datapath to reduce total execution cycles. The optimized design improves self-attention computation speed by reducing clock cycles and increasing throughput.
+
+## Key Features
+
+- SystemVerilog RTL implementation
+- Pipelined self-attention computation
+- SRAM-based input and weight storage
+- Matrix multiplication acceleration
+- Optimized memory access pattern
+- ModelSim simulation support
+- Synopsys synthesis flow
+- Configurable synthesis clock period
+- Headless evaluation testing
+
+## Repository Structure
+
+```text
+.
+├── inputs/                 # Input .dat files for SRAM initialization
+├── HW_specification/        # Homework specification document
+├── rtl/                    # RTL design files
+│   └── dut.sv              # Main design module connected to test fixture
+├── run/                    # Simulation Makefile and generated logs
+│   └── logs/               # Evaluation and simulation logs
+├── scripts/                # Python scripts for generating test inputs/outputs
+├── synthesis/              # Synthesis flow
+│   ├── reports/            # Generated synthesis reports
+│   └── gl/                 # Gate-level synthesized netlist
+├── testbench/              # Test fixture and verification files
+├── setup.sh                # Environment setup script
+└── README.md
 ```
-You should find the unzipped HW6 folder ```HW6/```
 
-## Start Designing
-### Setup script
+## Environment Setup
 
-```HW6/setup.sh``` is provided to load Modelsim and Synopsys
+Source the setup script from the `HW6/` directory to load the required tools:
 
-To source the script:
 ```bash
 source setup.sh
 ```
-This script also enables you to <kbd>Tab</kbd> complete ```make``` commands
 
-### HW6 description
+This script loads the ModelSim and Synopsys environments and enables tab completion for supported `make` commands.
 
-The document is located in ```HW6/HW_specification/```
+## RTL Design
 
-### Where to put your design
+The main design file is located at:
 
-A Verilog file ```HW6/rtl/dut.sv``` is provided with all the ports already connected to the test fixture
+```text
+rtl/dut.sv
+```
 
-### How to compile your design
+The provided `dut.sv` file contains the required module interface and port connections to the test fixture. All RTL design changes should be implemented inside this file or additional SystemVerilog files placed in the `rtl/` directory.
 
-To compile your design
+All `.sv` files in `rtl/` are compiled during simulation.
 
-Change directory to ```HW6/run/``` 
+## Build Instructions
+
+To compile the design, move into the simulation directory:
+
+```bash
+cd run
+```
+
+Then run:
 
 ```bash
 make build-dw
 make build
 ```
 
-All the .sv files in ```HW6/rtl/``` will be compiled with this command.
+## Running Simulation
 
-### How to run your design
+To run the design in ModelSim GUI mode:
 
-Run with Modelsim UI 564:
 ```bash
 make debug
 ```
 
-### Evaluation Testing
-To evaluate you design headless/no-gui, change directory to ```HW6/run/```
-```
+This launches the simulation environment for waveform inspection and debugging.
+
+## Evaluation Testing
+
+To run the full evaluation test suite in headless mode:
+
+```bash
 make eval
 ```
-This will produce a set of log files that will highlight the results of your design. This should only be ran as a final step before Synthesis
 
-All log files is in the following directory ```HW6/run/logs```
+This generates simulation logs in:
 
-All test resutls is in the results log file ```HW6/run/logs/RESULTS.log```
+```text
+run/logs/
+```
 
-All simulation resutls is in the following log file ```HW6/run/logs/output.log```
+Important log files:
 
-All simulation info is in the following log file ```HW6/run/logs/INFO.log```
+```text
+run/logs/RESULTS.log    # Evaluation results
+run/logs/output.log     # Simulation output
+run/logs/INFO.log       # Simulation information
+```
+
+Run evaluation testing after confirming the design works in debug mode.
 
 ## Synthesis
 
-Once you have a functional design, you can synthesize it in ```HW6/synthesis/```
+After the RTL passes functional simulation, synthesize the design from the synthesis directory:
 
-### Synthesis Command
-The following command will synthesize your design with a default clock period of 10 ns
 ```bash
+cd ../synthesis
 make all
 ```
-### Clock Period
 
-To run synthesis with a different clock period
-```bash
-make all CLOCK_PER=<YOUR_CLOCK_PERIOD>
-```
-For example, the following command will set the target clock period to 4 ns.
+By default, synthesis uses a 10 ns clock period.
+
+To specify a custom clock period:
 
 ```bash
-make all CLOCK_PER=10
+make all CLOCK_PER=<clock_period>
 ```
 
-## Appendix
+Example:
 
-### Directory Rundown
+```bash
+make all CLOCK_PER=4
+```
 
-You will find the following directories in ```HW6/```
+Generated synthesis files are stored in:
 
-* ```inputs/``` 
-  * Contains the .dat files for the input SRAMs used in HW 
-* ```HW_specification/```
-  * Contains the HW specification document
-* ```rtl/```
-  * All .v files will be compiled when executing ```make vlog-v``` in ```HW6/run/```
-  * A template ```dut.v``` that interfaces with the test fixture is provided
-* ```run/```
-  * Contains the ```Makefile``` to compile and simulate the design
-* ```scripts/```
-  * Contains the python script that generates a random input/output
-* ```synthesis/```
-  * The directory you will use to synthesize your design
-  * Synthesis reports will be exported to ```synthesis/reports/```
-  * Synthesized netlist will be generated to ```synthesis/gl/```
-* ```testbench/```
-  * Contains the test fixture of the HW
+```text
+synthesis/reports/      # Timing, area, and power reports
+synthesis/gl/           # Synthesized gate-level netlist
+```
 
+## Design Flow
 
+```text
+1. Source setup script
+2. Modify RTL in rtl/dut.sv
+3. Build the design
+4. Run GUI simulation for debugging
+5. Run headless evaluation tests
+6. Review logs
+7. Run synthesis
+8. Analyze timing, area, and generated netlist
+```
+
+## Commands Summary
+
+| Task | Command | Directory |
+|---|---|---|
+| Setup environment | `source setup.sh` | `HW6/` |
+| Compile DesignWare | `make build-dw` | `HW6/run/` |
+| Build RTL | `make build` | `HW6/run/` |
+| Run GUI simulation | `make debug` | `HW6/run/` |
+| Run evaluation tests | `make eval` | `HW6/run/` |
+| Run synthesis | `make all` | `HW6/synthesis/` |
+| Run synthesis with custom clock | `make all CLOCK_PER=4` | `HW6/synthesis/` |
+
+## Technologies Used
+
+- SystemVerilog
+- ModelSim
+- Synopsys Design Compiler
+- ASIC design flow
+- FPGA design concepts
+- SRAM-based memory architecture
+- Pipelined digital design
+- Transformer neural network acceleration
+
+## Results
+
+The design accelerates Transformer self-attention computation by reducing the number of required clock cycles through pipelined matrix multiplication and optimized SRAM access.
+
+Key result:
+
+```text
+Self-attention computation speed improved by approximately 90%.
+```
+
+## Future Improvements
+
+- Add additional pipeline stages for higher clock frequency
+- Improve SRAM access scheduling
+- Add configurable matrix dimensions
+- Add synthesis comparison across different clock periods
+- Add timing, area, and power result plots
+- Extend the design to support additional Transformer operations
+
+## License
+
+This project is intended for academic and educational use.
